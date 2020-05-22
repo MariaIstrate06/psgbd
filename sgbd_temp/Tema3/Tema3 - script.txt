@@ -1,0 +1,47 @@
+
+create or replace
+    function FriendRecommendation(my_id IN number) return VARCHAR2 AS
+    cursor friend_list is
+
+        SELECT distinct ID_STUDENT1
+        FROM PRIETENI
+        WHERE ID_STUDENT2 IN (
+            SELECT ID_STUDENT1
+            FROM PRIETENI
+            WHERE ID_STUDENT2 = my_id
+        )
+          AND ID_STUDENT1 NOT IN (
+            SELECT ID_STUDENT1
+            FROM PRIETENI
+            WHERE ID_STUDENT2 = my_id
+        );
+    v_id varchar2(15);
+    v_nume varchar2(30);
+    v_prenume varchar2(30);
+    v_count_friends int;
+    result varchar2(1000);
+begin
+    open friend_list;
+    loop
+        fetch  friend_list into v_id;
+        exit when friend_list % rowcount = 6;
+        select nume, prenume into v_nume, v_prenume from STUDENTI where ID=v_id;
+        select count(distinct ID_STUDENT1) into v_count_friends
+                     FROM PRIETENI
+                     WHERE ID_STUDENT2 IN (
+                    SELECT ID_STUDENT1
+                    FROM PRIETENI
+                    WHERE ID_STUDENT2 = v_id);
+        result := result ||'{ "ID" : ' || v_id || ', "NUME" : "' || v_nume || '", "PRENUME" : "' || v_prenume ||
+                             '", "NUMAR DE PRIETENI COMUNI" : ' || v_count_friends || ' },';
+
+    end loop;
+    close friend_list;
+    --result:=substr(result,0,length(result-1));
+    select trim(trailing ',' from result) into result from dual;
+    result:='[' || result || ']';
+    return result;
+end;
+
+
+select FriendRecommendation(4) from dual;

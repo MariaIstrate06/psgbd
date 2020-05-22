@@ -1,0 +1,48 @@
+DROP TABLE dog_lovers CASCADE CONSTRAINTS;
+
+CREATE TABLE dog_lovers (
+    id int NOT NULL PRIMARY KEY,
+    proprietar_id int NOT NULL,
+    nume VARCHAR(30) NOT NULL,
+    an_nastere INT NOT NULL,
+    rasa VARCHAR(30) NOT NULL,
+    culoare_blana VARCHAR(30) NOT NULL,
+    talie VARCHAR(20) NOT NULL,
+
+    CONSTRAINT fk_proprietar_id FOREIGN KEY (proprietar_id) REFERENCES studenti(id)
+);
+
+SELECT * FROM dog_lovers;
+SET SERVEROUTPUT ON;
+
+DECLARE
+    TYPE varr IS VARRAY(1000) OF varchar2(255);
+    lista_nume varr := varr('Ace','Apollo','Bailey','Baxter','Bandit','Bear','Beau','Bo','Brady','Bruno', 'Brutus', 'Buddy', 'Buster', 'Elvis', 'Finn', 'Frankie', 'George', 'Gizmo','Gunner','Gus','Harley','Henry','Jack','Jackson','Jax','Joey','Kobe','Leo','Loki','Otis','Peanut','Prince','Rex','Riley','Rocco','Rocky','Romeo','Rosco','Rudy','Rufus','Rusty','Sam','Sammy','Scooter','Scout','Shadow','Simba','Mufasa');
+    lista_an_nastere varr:= varr('1999','2000','2001','2002','2003','2004','2005','2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020');
+    lista_rase varr:= varr('Ainu','Airedale','Terrier','Akita inu','American Eskimo','Barzoi','Basenji','Beagle','Bergmasco','Bichon','Bobtail','Border Collie','Boxer', 'Brac German','Brac Italian', 'Fox Terrier', 'Cane Corso', 'Labrador','Ogar afgan','Pekinez','Pitbull','Pointer englez', 'Ogarul de ibiza','Shitzu');
+    lista_culoare_blana varr:=varr('negru','blond','roscat','cu picatele','brunet');
+    lista_talie varr:=varr('mica','medie','mare');
+
+    v_nume VARCHAR2(255);
+    v_an_nastere VARCHAR2(255);
+    v_rase VARCHAR2(255);
+    v_culoare_blana VARCHAR2(255);
+    v_talie VARCHAR2(255);
+    v_proprietar_id INT(8);
+
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Inserare...');
+    FOR v_i IN 1..200 LOOP
+     v_nume := lista_nume(TRUNC(DBMS_RANDOM.VALUE(0,lista_nume.COUNT))+1);
+     v_an_nastere := lista_an_nastere(TRUNC(DBMS_RANDOM.VALUE(0,lista_an_nastere.COUNT))+1);
+     v_rase := lista_rase(TRUNC(DBMS_RANDOM.VALUE(0,lista_rase.COUNT))+1);
+     v_culoare_blana := lista_culoare_blana(TRUNC(DBMS_RANDOM.VALUE(0,lista_culoare_blana.COUNT))+1);
+     v_talie := lista_talie(TRUNC(DBMS_RANDOM.VALUE(0,lista_talie.COUNT))+1);
+     v_proprietar_id :=TRUNC(DBMS_RANDOM.VALUE(0,1025)+1);
+
+     INSERT INTO dog_lovers VALUES (v_i, v_proprietar_id, v_nume,v_an_nastere, v_rase, v_culoare_blana, v_talie);
+
+    end loop;
+end;
+
+SELECT * FROM dog_lovers;

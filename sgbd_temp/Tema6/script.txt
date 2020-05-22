@@ -1,0 +1,7 @@
+DROP TABLE JAVA_OBJECTS;
+
+CREATE TABLE java_objects(
+    object_id NUMBER,
+    object_name varchar(128),
+    object_value BLOB DEFAULT empty_blob(),
+    primary key (object_id));

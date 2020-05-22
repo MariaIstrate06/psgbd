@@ -1,0 +1,58 @@
+DROP TRIGGER db_logon;
+DROP TABLE LOGS CASCADE CONSTRAINTS;
+DROP TRIGGER dml_logs;
+
+create or replace TRIGGER db_logon
+AFTER LOGON ON DATABASE
+BEGIN
+   IF (UPPER(USER)='STUDENT2') THEN
+               EXECUTE IMMEDIATE 'ALTER SESSION SET current_schema=STUDENT';
+               DBMS_APPLICATION_INFO.set_module(USER, 'Current_Schema Set');
+   END IF;
+end;
+
+CREATE TABLE LOGS(
+    id_nota NUMBER,
+    old_value NUMBER,
+    new_value NUMBER,
+    operation_type VARCHAR(20), -- INS | DEL | UPDATE
+    operation_date DATE,
+    my_user VARCHAR(20),
+    CONSTRAINT fk_id_nota FOREIGN KEY (id_nota) REFERENCES note(id)
+);
+SET SERVEROUTPUT ON;
+CREATE OR REPLACE TRIGGER dml_logs
+    BEFORE INSERT OR UPDATE OR DELETE ON note
+    FOR EACH ROW
+DECLARE
+    v_old_id NUMBER;
+    v_old_valoare NUMBER;
+    v_new_valoare NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('O operatie cu DML in tabela note!');
+    CASE
+        WHEN INSERTING THEN
+            v_old_id := :OLD.id;
+            v_old_valoare := :OLD.VALOARE;
+            v_new_valoare := :NEW.VALOARE;
+            INSERT INTO LOGS(ID_NOTA, OLD_VALUE, NEW_VALUE, OPERATION_TYPE, OPERATION_DATE, MY_USER) VALUES(v_old_id, v_old_valoare, v_new_valoare, 'INSERARE', CURRENT_DATE, ORA_LOGIN_USER);
+        WHEN UPDATING THEN
+            v_old_id := :OLD.id;
+            v_old_valoare := :OLD.VALOARE;
+            v_new_valoare := :NEW.VALOARE;
+            INSERT INTO LOGS(ID_NOTA, OLD_VALUE, NEW_VALUE, OPERATION_TYPE, OPERATION_DATE, MY_USER) VALUES(v_old_id, v_old_valoare, v_new_valoare, 'ACTUALIZARE', CURRENT_DATE, ORA_LOGIN_USER);
+        WHEN DELETING THEN
+           v_old_id := :OLD.id;
+            v_old_valoare := :OLD.VALOARE;
+            v_new_valoare := :NEW.VALOARE;
+            INSERT INTO LOGS(ID_NOTA, OLD_VALUE, NEW_VALUE, OPERATION_TYPE, OPERATION_DATE, MY_USER) VALUES(v_old_id, v_old_valoare, v_new_valoare, 'STERGERE', CURRENT_DATE, ORA_LOGIN_USER);
+    END CASE;
+end;
+
+INSERT INTO NOTE(id, id_student, id_curs, valoare, data_notare, created_at, updated_at) VALUES(10000, 12, 2, 10,CURRENT_DATE,CURRENT_DATE,CURRENT_DATE);
+UPDATE NOTE SET VALOARE = 10 where ID_CURS = 1;
+DELETE from NOTE where ID_STUDENT = 2;
+
+select * from USER_ERRORS where type = 'TRIGGER' and name = 'DML_LOGS';
+SELECT * FROM LOGS WHERE operation_type='STERGERE';
+TRUNCATE TABLE LOGS;
